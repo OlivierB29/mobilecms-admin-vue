@@ -1,4 +1,4 @@
-import { defineStore } from 'pinia';
+import { reactive } from 'vue';
 
 interface UserSession {
   token?: string;
@@ -6,18 +6,30 @@ interface UserSession {
   role?: string;
 }
 
-export const useAuthStore = defineStore('auth', {
-  state: () => ({
-    user: null as UserSession | null,
-    token: '' as string
-  }),
-  getters: {
-    isAuthenticated: (state) => Boolean(state.token || state.user?.token)
-  },
-  actions: {
+interface AuthState {
+  user: UserSession | null;
+  token: string;
+}
+
+const state = reactive<AuthState>({
+  user: null,
+  token: ''
+});
+
+export function useAuthStore() {
+  return {
+    get user() {
+      return state.user;
+    },
+    get token() {
+      return state.token;
+    },
+    get isAuthenticated() {
+      return Boolean(state.token || state.user?.token);
+    },
     setSession(session: UserSession, jwt: string) {
-      this.user = session;
-      this.token = jwt;
+      state.user = session;
+      state.token = jwt;
       localStorage.setItem('currentUser', JSON.stringify({ ...session, token: jwt }));
     },
     restoreSession() {
@@ -25,16 +37,19 @@ export const useAuthStore = defineStore('auth', {
       if (!raw) return;
       try {
         const parsed = JSON.parse(raw) as UserSession & { token?: string };
-        this.user = parsed;
-        this.token = parsed.token || '';
+        state.user = parsed;
+        state.token = parsed.token || '';
       } catch {
         this.clearSession();
       }
     },
     clearSession() {
-      this.user = null;
-      this.token = '';
+      state.user = null;
+      state.token = '';
       localStorage.removeItem('currentUser');
     }
-  }
-});
+  };
+}
+
+export const authStore = useAuthStore();
+export default authStore;
