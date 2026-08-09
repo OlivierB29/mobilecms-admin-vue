@@ -4,6 +4,7 @@
       <h1>{{ type }} records</h1>
       <div class="actions">
         <button @click="goHome">Home</button>
+        <button @click="viewMetadata">View metadata</button>
         <button @click="createRecord">New record</button>
       </div>
     </header>
@@ -51,6 +52,10 @@ function editRecord(item: any) {
 
 function createRecord() {
   router.push(`/record/${type.value}/new`);
+}
+
+function viewMetadata() {
+  router.push(`/metadata/${type.value}`);
 }
 
 function goHome() {
