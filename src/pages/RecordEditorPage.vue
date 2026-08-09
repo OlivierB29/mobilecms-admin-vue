@@ -20,10 +20,10 @@
           <option value="published">Published</option>
         </select>
       </label>
-      <label>
-        Description
-        <textarea v-model="record.description" rows="8"></textarea>
-      </label>
+      <div class="field">
+        <label for="description">Description</label>
+        <ckeditor id="description" :editor="ClassicEditor" v-model="record.description" :config="editorConfig" />
+      </div>
     </form>
   </div>
 </template>
@@ -32,6 +32,7 @@
 import { onMounted, ref } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import api from '../services/api';
+import ClassicEditor from '@ckeditor/ckeditor5-build-classic';
 
 const route = useRoute();
 const router = useRouter();
@@ -39,6 +40,10 @@ const type = ref(String(route.params.type || 'news'));
 const id = ref(String(route.params.id || 'new'));
 const loading = ref(true);
 const record = ref<any>({ title: '', status: 'draft', description: '' });
+const editorConfig = ref({
+  placeholder: 'Enter HTML content here…',
+  toolbar: ['bold', 'italic', 'link', 'bulletedList', 'numberedList', 'blockQuote', 'heading', '|',  'undo', 'redo']
+});
 
 async function loadRecord() {
   loading.value = true;
