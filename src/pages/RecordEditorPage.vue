@@ -43,6 +43,32 @@
           :config="editorConfig"
         />
 
+        <div v-else-if="property.editor === 'medialist'"
+             class="media-field"
+        >
+          <input
+            :id="property.name + '-upload'"
+            type="file"
+            multiple
+            @change="onFilesSelected($event, property.name)"
+          />
+          <button type="button" @click="uploadFiles(property.name)">Upload files</button>
+          <div class="upload-error" v-if="uploadError">{{ uploadError }}</div>
+          <div class="upload-error" v-if="deleteError">{{ deleteError }}</div>
+          <div class="uploaded-files" v-if="Array.isArray(record[property.name]) && record[property.name].length">
+            <div v-for="file in record[property.name]" :key="file.url" class="uploaded-file">
+              <span>{{ file.title || file.url }}</span>
+              <button type="button" class="delete-file-button" @click="deleteFile(property.name, file.url)">Delete</button>
+            </div>
+          </div>
+        </div>
+
+        <div v-else-if="property.editor === 'attachmentlist'"
+             class="value-display"
+        >
+          {{ formatValue(record[property.name]) }}
+        </div>
+
         <div v-else class="value-display">
           {{ formatValue(record[property.name]) }}
         </div>
@@ -64,6 +90,9 @@ const id = ref(String(route.params.id || 'new'));
 const loading = ref(true);
 const properties = ref<any[]>([]);
 const record = ref<any>({});
+const selectedFiles = ref<File[]>([]);
+const uploadError = ref('');
+const deleteError = ref('');
 const editorConfig = ref({
   placeholder: 'Enter HTML content here…',
   toolbar: ['bold', 'italic', 'link', 'bulletedList', 'numberedList', 'blockQuote', 'heading', '|', 'undo', 'redo']
@@ -87,7 +116,14 @@ function createDefaultRecord() {
 
 function formatValue(value: unknown) {
   if (Array.isArray(value)) {
-    return value.join(', ');
+    return value
+      .map(item => {
+        if (item && typeof item === 'object' && 'title' in item) {
+          return (item as any).title || (item as any).url || JSON.stringify(item);
+        }
+        return String(item);
+      })
+      .join(', ');
   }
 
   return value ?? '';
@@ -127,6 +163,64 @@ async function loadPage() {
   loading.value = false;
 }
 
+function onFilesSelected(event: Event, propertyName: string) {
+  uploadError.value = '';
+  const input = event.target as HTMLInputElement;
+  const files = input.files;
+
+  if (!files) {
+    selectedFiles.value = [];
+    return;
+  }
+
+  selectedFiles.value = Array.from(files);
+}
+
+async function uploadFiles(propertyName: string) {
+  if (!selectedFiles.value.length) {
+    uploadError.value = 'Select files to upload first.';
+    return;
+  }
+
+  if (id.value === 'new') {
+    uploadError.value = 'Save the record before uploading files.';
+    return;
+  }
+
+  const formData = new FormData();
+  selectedFiles.value.forEach(file => formData.append('uploadfiles[]', file));
+
+  try {
+    const response = await api.upload<any[]>(`/fileapi/basicupload/${type.value}/${encodeURIComponent(id.value)}`, formData);
+    const uploaded = response.data || [];
+
+    if (!Array.isArray(record.value[propertyName])) {
+      record.value[propertyName] = [];
+    }
+    record.value[propertyName] = [...record.value[propertyName], ...uploaded];
+    selectedFiles.value = [];
+    uploadError.value = '';
+  } catch (error) {
+    uploadError.value = error instanceof Error ? error.message : 'Upload failed.';
+  }
+}
+
+async function deleteFile(propertyName: string, fileUrl: string) {
+  if (id.value === 'new') {
+    deleteError.value = 'Save the record before deleting files.';
+    return;
+  }
+
+  try {
+    const response = await api.post<any[]>(`/fileapi/delete/${type.value}/${encodeURIComponent(id.value)}`, [{ url: fileUrl }]);
+    const updatedFiles = response.data || [];
+    record.value[propertyName] = updatedFiles;
+    deleteError.value = '';
+  } catch (error) {
+    deleteError.value = error instanceof Error ? error.message : 'Delete failed.';
+  }
+}
+
 async function saveRecord() {
   try {
     await api.post(`/cmsapi/content/${type.value}`, record.value);
@@ -164,4 +258,9 @@ button { padding: .6rem .9rem; border: 0; border-radius: 8px; cursor: pointer; b
 label { font-weight: 600; }
 input, select, textarea { padding: .7rem; border: 1px solid #d1d5db; border-radius: 8px; }
 .value-display { padding: .7rem; border: 1px solid #e5e7eb; border-radius: 8px; background: #f9fafb; }
+.media-field { display: grid; gap: .5rem; }
+.uploaded-files { display: grid; gap: .3rem; padding: .6rem; border: 1px solid #d1d5db; border-radius: 8px; background: #f9fafb; }
+.uploaded-file { display: flex; justify-content: space-between; align-items: center; gap: .75rem; font-size: .95rem; }
+.delete-file-button { padding: .35rem .65rem; border: 0; border-radius: 8px; cursor: pointer; background: #dc2626; color: white; }
+.upload-error { color: #b91c1c; font-size: .95rem; }
 </style>

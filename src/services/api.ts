@@ -81,6 +81,44 @@ const api = {
   post<T = unknown>(path: string, body?: unknown) {
     return request<T>('POST', path, body);
   },
+  upload<T = unknown>(path: string, formData: FormData) {
+    const headers = new Headers();
+    headers.set('Accept', 'application/json');
+
+    const token = getStoredToken();
+    if (token) {
+      headers.set('Authorization', `Bearer ${token}`);
+    }
+
+    return fetch(buildUrl(path), {
+      method: 'POST',
+      headers,
+      body: formData
+    })
+      .then(async response => {
+        const rawText = await response.text();
+        let data: T | null = null;
+
+        if (rawText) {
+          try {
+            data = JSON.parse(rawText) as T;
+          } catch {
+            data = rawText as T;
+          }
+        }
+
+        if (!response.ok) {
+          const message = typeof data === 'string' ? data : (data as { message?: string } | null)?.message || `Request failed with status ${response.status}`;
+          throw new Error(message);
+        }
+
+        return {
+          data: data as T,
+          status: response.status,
+          headers: response.headers
+        };
+      });
+  },
   put<T = unknown>(path: string, body?: unknown) {
     return request<T>('PUT', path, body);
   },
