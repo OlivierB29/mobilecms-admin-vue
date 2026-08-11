@@ -17,13 +17,13 @@
           Manage {{ item.label }}
         </router-link>
       </template>
-      <router-link class="card user-card" to="/userlist">Manage users</router-link>
+      <router-link v-if="isAdmin" class="card user-card" to="/userlist">Manage users</router-link>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { onMounted, ref } from 'vue';
+import { computed, onMounted, ref } from 'vue';
 import { useRouter } from 'vue-router';
 import { useAuthStore } from '../stores/auth';
 import api from '../services/api';
@@ -44,6 +44,7 @@ const auth = useAuthStore();
 const categories = ref<ContentType[]>([]);
 const loading = ref(true);
 const error = ref('');
+const isAdmin = computed(() => auth.isAdmin);
 
 function logout() {
   auth.clearSession();
