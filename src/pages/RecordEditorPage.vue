@@ -5,6 +5,17 @@
       <div class="actions">
         <button @click="goBack">Back</button>
         <button @click="saveRecord">Save</button>
+        <button
+          v-if="id !== 'new'"
+          type="button"
+          class="delete-button"
+          @click="confirmAndDelete"
+          title="Delete record"
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="16" height="16" fill="currentColor" aria-hidden="true">
+            <path d="M3 6h18v2H3V6zm2 3h14l-1 11a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2l-1-11zM10 4h4l1 2H9l1-2z" />
+          </svg>
+        </button>
       </div>
     </header>
     <div v-if="loading">Loading…</div>
@@ -230,6 +241,21 @@ async function saveRecord() {
   }
 }
 
+async function confirmAndDelete() {
+  if (id.value === 'new') return;
+
+  const ok = window.confirm('Are you sure you want to delete this record?');
+  if (!ok) return;
+
+  try {
+    await api.delete(`/cmsapi/content/${type.value}/${encodeURIComponent(id.value)}`);
+    router.push(`/recordlist/${type.value}`);
+  } catch (e) {
+    console.error(e);
+    deleteError.value = e instanceof Error ? e.message : 'Delete failed.';
+  }
+}
+
 function goBack() {
   router.push(`/recordlist/${type.value}`);
 }
@@ -263,4 +289,7 @@ input, select, textarea { padding: .7rem; border: 1px solid #d1d5db; border-radi
 .uploaded-file { display: flex; justify-content: space-between; align-items: center; gap: .75rem; font-size: .95rem; }
 .delete-file-button { padding: .35rem .65rem; border: 0; border-radius: 8px; cursor: pointer; background: #dc2626; color: white; }
 .upload-error { color: #b91c1c; font-size: .95rem; }
+
+.delete-button { display: inline-flex; align-items: center; justify-content: center; gap: .4rem; padding: .5rem .7rem; border: 0; border-radius: 8px; cursor: pointer; background: #dc2626; color: white; }
+.delete-button svg { display: block; }
 </style>
