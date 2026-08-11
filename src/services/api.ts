@@ -6,7 +6,7 @@ interface ApiResponse<T = unknown> {
   headers: Headers;
 }
 
-const baseURL = 'http://localhost:8888/mobilecmsapi/v50';
+const baseURL = import.meta.env.PROD ? '/mobilecmsapi/v50' : 'http://localhost:8888/mobilecmsapi/v50';
 
 function getStoredToken() {
   if (typeof window === 'undefined') {
