@@ -14,6 +14,31 @@
         </label>
         <button type="submit">Login</button>
       </form>
+      <div style="margin-top:1rem">
+        <button @click="showChange = !showChange" type="button">Change password</button>
+      </div>
+      <div v-if="showChange" class="change-card" style="margin-top:1rem">
+        <form @submit.prevent="submitChangePassword">
+          <label>
+            Username
+            <input v-model="form.username" type="text" required />
+          </label>
+          <label>
+            Old password
+            <input v-model="change.oldPassword" type="password" required />
+          </label>
+          <label>
+            New password
+            <input v-model="change.newPassword" type="password" required />
+          </label>
+          <label>
+            Confirm new password
+            <input v-model="change.confirmPassword" type="password" required />
+          </label>
+          <button type="submit">Submit change</button>
+        </form>
+        <p v-if="changeMessage" :class="{ error: changeError }">{{ changeMessage }}</p>
+      </div>
       <p v-if="error" class="error">{{ error }}</p>
     </div>
   </div>
@@ -24,18 +49,36 @@ import { reactive, ref } from 'vue';
 import { useRouter } from 'vue-router';
 import { useAuthStore } from '../stores/auth';
 import api from '../services/api';
+import { publicinfo, getPassword } from '../services/auth';
 
 const router = useRouter();
 const auth = useAuthStore();
 const form = reactive({ username: '', password: '' });
+const showChange = ref(false);
+const change = reactive({ oldPassword: '', newPassword: '', confirmPassword: '' });
+const changeMessage = ref('');
+const changeError = ref(false);
 const error = ref('');
 
 async function submitLogin() {
   error.value = '';
   try {
+    let mode = 'hashmacbase64';
+    try {
+      const infoResp = await publicinfo(form.username);
+      const info = (infoResp as any).data || infoResp;
+      if (info && info.clientalgorithm) {
+        mode = info.clientalgorithm;
+      }
+    } catch (e) {
+      // ignore and use default
+    }
+
+    const hashed = getPassword(form.password, mode);
+
     const response = await api.post('/authapi/authenticate', {
       user: form.username,
-      password: form.password
+      password: hashed
     });
     const payload = response.data;
     if (payload && payload.token) {
@@ -46,6 +89,49 @@ async function submitLogin() {
     }
   } catch (e: any) {
     error.value = e?.message || 'Authentication failed';
+  }
+}
+
+async function submitChangePassword() {
+  changeMessage.value = '';
+  changeError.value = false;
+  if (change.newPassword !== change.confirmPassword) {
+    changeMessage.value = 'New passwords do not match';
+    changeError.value = true;
+    return;
+  }
+
+  try {
+    let mode = 'hashmacbase64';
+    try {
+      const infoResp = await publicinfo(form.username);
+      const info = (infoResp as any).data || infoResp;
+      if (info && info.clientalgorithm) {
+        mode = info.clientalgorithm;
+      }
+    } catch (e) {
+      // ignore, use default
+    }
+
+    const oldHashed = getPassword(change.oldPassword, mode);
+    const newHashed = getPassword(change.newPassword, 'hashmacbase64');
+
+    await api.post('/authapi/changepassword', {
+      user: form.username,
+      password: oldHashed,
+      newpassword: newHashed,
+      captchaanswer: ''
+    });
+
+    changeMessage.value = 'Password changed successfully';
+    changeError.value = false;
+    showChange.value = false;
+    change.oldPassword = '';
+    change.newPassword = '';
+    change.confirmPassword = '';
+  } catch (e: any) {
+    changeMessage.value = e?.message || 'Change password failed';
+    changeError.value = true;
   }
 }
 </script>
