@@ -12,6 +12,7 @@ const routes: RouteRecordRaw[] = [
   { path: '/', redirect: '/home' },
   { path: '/login', component: LoginPage },
   { path: '/home', component: HomePage, meta: { requiresAuth: true } },
+  { path: '/changepassword', component: () => import('../pages/ChangePasswordPage.vue'), meta: { requiresAuth: true } },
   { path: '/recordlist/:type', component: RecordListPage, meta: { requiresAuth: true } },
   { path: '/metadata/:type', component: MetadataPage, meta: { requiresAuth: true } },
   { path: '/record/:type/:id', component: RecordEditorPage, meta: { requiresAuth: true } },

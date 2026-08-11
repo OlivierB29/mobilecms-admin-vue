@@ -1,7 +1,10 @@
 <template>
   <div class="page">
     <header>
-      <h1>Admin home</h1>
+      <div>
+        <h1>Admin home</h1>
+        <button @click="goChangePassword" type="button">Change password</button>
+      </div>
       <button @click="logout">Logout</button>
     </header>
     <div class="grid">
@@ -80,6 +83,10 @@ async function loadCategories() {
   }
 }
 
+function goChangePassword() {
+  router.push('/changepassword');
+}
+
 onMounted(() => {
   loadCategories();
 });
@@ -93,5 +100,10 @@ header { display: flex; justify-content: space-between; align-items: center; mar
 button { padding: .7rem 1rem; border: 0; border-radius: 8px; cursor: pointer; background: #111827; color: white; }
 .status { display: block; padding: 1.5rem; border-radius: 12px; background: #f3f4f6; color: #111827; }
 .status.error { background: #fee2e2; color: #991b1b; }
+.change-card { margin-bottom: 1rem; }
+.change-card form { display: grid; gap: 1rem; }
+.change-card label { display: grid; gap: .4rem; font-weight: 600; }
+.change-card input { padding: .75rem; border: 1px solid #d1d5db; border-radius: 8px; }
+.change-card button { background: #2563eb; }
 .user-card { grid-column: span 1; }
 </style>

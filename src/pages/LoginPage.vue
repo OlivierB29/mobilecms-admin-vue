@@ -5,8 +5,8 @@
       <p>Sign in to continue</p>
       <form @submit.prevent="submitLogin">
         <label>
-          Username
-          <input v-model="form.username" type="text" required />
+          Email
+          <input v-model="form.email" type="email" required />
         </label>
         <label>
           Password
@@ -14,30 +14,18 @@
         </label>
         <button type="submit">Login</button>
       </form>
-      <div style="margin-top:1rem">
-        <button @click="showChange = !showChange" type="button">Change password</button>
+      <div style="margin-top:1rem; display:grid; gap:.75rem">
+        <button @click="showReset = !showReset" type="button">Forgot password</button>
       </div>
-      <div v-if="showChange" class="change-card" style="margin-top:1rem">
-        <form @submit.prevent="submitChangePassword">
+      <div v-if="showReset" class="change-card" style="margin-top:1rem">
+        <form @submit.prevent="submitResetPassword">
           <label>
-            Username
-            <input v-model="form.username" type="text" required />
+            Email
+            <input v-model="form.email" type="email" required />
           </label>
-          <label>
-            Old password
-            <input v-model="change.oldPassword" type="password" required />
-          </label>
-          <label>
-            New password
-            <input v-model="change.newPassword" type="password" required />
-          </label>
-          <label>
-            Confirm new password
-            <input v-model="change.confirmPassword" type="password" required />
-          </label>
-          <button type="submit">Submit change</button>
+          <button type="submit">Send reset link</button>
         </form>
-        <p v-if="changeMessage" :class="{ error: changeError }">{{ changeMessage }}</p>
+        <p v-if="resetMessage" :class="{ error: resetError }">{{ resetMessage }}</p>
       </div>
       <p v-if="error" class="error">{{ error }}</p>
     </div>
@@ -53,11 +41,10 @@ import { publicinfo, getPassword } from '../services/auth';
 
 const router = useRouter();
 const auth = useAuthStore();
-const form = reactive({ username: '', password: '' });
-const showChange = ref(false);
-const change = reactive({ oldPassword: '', newPassword: '', confirmPassword: '' });
-const changeMessage = ref('');
-const changeError = ref(false);
+const form = reactive({ email: '', password: '' });
+const showReset = ref(false);
+const resetMessage = ref('');
+const resetError = ref(false);
 const error = ref('');
 
 async function submitLogin() {
@@ -65,7 +52,7 @@ async function submitLogin() {
   try {
     let mode = 'hashmacbase64';
     try {
-      const infoResp = await publicinfo(form.username);
+      const infoResp = await publicinfo(form.email);
       const info = (infoResp as any).data || infoResp;
       if (info && info.clientalgorithm) {
         mode = info.clientalgorithm;
@@ -77,12 +64,12 @@ async function submitLogin() {
     const hashed = getPassword(form.password, mode);
 
     const response = await api.post('/authapi/authenticate', {
-      user: form.username,
+      user: form.email,
       password: hashed
     });
     const payload = response.data;
     if (payload && payload.token) {
-      auth.setSession({ name: payload.name || form.username, role: payload.role || 'editor' }, payload.token);
+      auth.setSession({ name: payload.name || form.email, email: payload.email || form.email, role: payload.role || 'editor' }, payload.token);
       router.push('/home');
     } else {
       error.value = 'Authentication failed';
@@ -92,46 +79,21 @@ async function submitLogin() {
   }
 }
 
-async function submitChangePassword() {
-  changeMessage.value = '';
-  changeError.value = false;
-  if (change.newPassword !== change.confirmPassword) {
-    changeMessage.value = 'New passwords do not match';
-    changeError.value = true;
-    return;
-  }
+async function submitResetPassword() {
+  resetMessage.value = '';
+  resetError.value = false;
 
   try {
-    let mode = 'hashmacbase64';
-    try {
-      const infoResp = await publicinfo(form.username);
-      const info = (infoResp as any).data || infoResp;
-      if (info && info.clientalgorithm) {
-        mode = info.clientalgorithm;
-      }
-    } catch (e) {
-      // ignore, use default
-    }
-
-    const oldHashed = getPassword(change.oldPassword, mode);
-    const newHashed = getPassword(change.newPassword, 'hashmacbase64');
-
-    await api.post('/authapi/changepassword', {
-      user: form.username,
-      password: oldHashed,
-      newpassword: newHashed,
-      captchaanswer: ''
+    await api.post('/authapi/resetpassword', {
+      user: form.email
     });
 
-    changeMessage.value = 'Password changed successfully';
-    changeError.value = false;
-    showChange.value = false;
-    change.oldPassword = '';
-    change.newPassword = '';
-    change.confirmPassword = '';
+    resetMessage.value = 'Password reset email sent or reset initiated';
+    resetError.value = false;
+    showReset.value = false;
   } catch (e: any) {
-    changeMessage.value = e?.message || 'Change password failed';
-    changeError.value = true;
+    resetMessage.value = e?.message || 'Forgot password failed';
+    resetError.value = true;
   }
 }
 </script>

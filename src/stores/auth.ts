@@ -2,6 +2,7 @@ import { reactive } from 'vue';
 
 interface UserSession {
   token?: string;
+  email?: string;
   name?: string;
   role?: string;
 }
