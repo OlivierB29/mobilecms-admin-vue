@@ -1,29 +1,29 @@
 <template>
   <div class="page login-page">
     <div class="card">
-      <h1>MobileCMS Admin</h1>
-      <p>Sign in to continue</p>
+      <h1>Administration</h1>
+      <p>Connectez-vous pour continuer</p>
       <form @submit.prevent="submitLogin">
         <label>
-          Email
+          Adresse e-mail
           <input v-model="form.email" type="email" required />
         </label>
         <label>
-          Password
+          Mot de passe
           <input v-model="form.password" type="password" required />
         </label>
-        <button type="submit">Login</button>
+        <button type="submit">Connexion</button>
       </form>
       <div style="margin-top:1rem; display:grid; gap:.75rem">
-        <button @click="showReset = !showReset" type="button">Forgot password</button>
+        <button @click="showReset = !showReset" type="button">Mot de passe oublié</button>
       </div>
       <div v-if="showReset" class="change-card" style="margin-top:1rem">
         <form @submit.prevent="submitResetPassword">
           <label>
-            Email
+            Adresse e-mail
             <input v-model="form.email" type="email" required />
           </label>
-          <button type="submit">Send reset link</button>
+          <button type="submit">Envoyer le lien de réinitialisation</button>
         </form>
         <p v-if="resetMessage" :class="{ error: resetError }">{{ resetMessage }}</p>
       </div>
@@ -72,7 +72,7 @@ async function submitLogin() {
       auth.setSession({ name: payload.name || form.email, email: payload.email || form.email, role: payload.role || 'editor' }, payload.token);
       router.push('/home');
     } else {
-      error.value = 'Authentication failed';
+      error.value = "Échec de l'authentification";
     }
   } catch (e: any) {
     error.value = e?.message || 'Authentication failed';
@@ -88,11 +88,11 @@ async function submitResetPassword() {
       user: form.email
     });
 
-    resetMessage.value = 'Password reset email sent or reset initiated';
+    resetMessage.value = "E-mail de réinitialisation envoyé ou réinitialisation initiée";
     resetError.value = false;
     showReset.value = false;
   } catch (e: any) {
-    resetMessage.value = e?.message || 'Forgot password failed';
+    resetMessage.value = e?.message || 'Échec de la réinitialisation du mot de passe';
     resetError.value = true;
   }
 }

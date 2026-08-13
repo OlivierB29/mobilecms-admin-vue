@@ -1,23 +1,23 @@
 <template>
   <div class="page">
     <header>
-      <h1>{{ type }} metadata</h1>
+      <h1>{{ type }} — métadonnées</h1>
       <div class="actions">
-        <button @click="goBack">Back</button>
+        <button @click="goBack">Retour</button>
       </div>
     </header>
 
-    <div v-if="loading">Loading…</div>
-    <div v-else-if="!properties.length">No metadata found for this type.</div>
+    <div v-if="loading">Chargement…</div>
+    <div v-else-if="!properties.length">Aucune métadonnée trouvée pour ce type.</div>
     <table v-else>
       <thead>
         <tr>
-          <th>Name</th>
+          <th>Nom</th>
           <th>Type</th>
-          <th>Editor</th>
-          <th>Primary</th>
-          <th>Choices</th>
-          <th>Translate</th>
+          <th>Éditeur</th>
+          <th>Principal</th>
+          <th>Choix</th>
+          <th>Traduire</th>
         </tr>
       </thead>
       <tbody>

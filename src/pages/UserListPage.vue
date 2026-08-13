@@ -1,20 +1,20 @@
 <template>
   <div class="page">
     <header>
-      <h1>Users</h1>
-      <button @click="goHome">Home</button>
+      <h1>Utilisateurs</h1>
+      <button @click="goHome">Accueil</button>
     </header>
-    <div v-if="loading">Loading…</div>
+    <div v-if="loading">Chargement…</div>
     <table v-else>
       <thead>
-        <tr><th>Email</th><th>Name</th><th>Role</th><th></th></tr>
+        <tr><th>Adresse e-mail</th><th>Nom</th><th>Rôle</th><th></th></tr>
       </thead>
       <tbody>
         <tr v-for="item in items" :key="item.email">
           <td>{{ item.email }}</td>
           <td>{{ item.name }}</td>
           <td>{{ item.role }}</td>
-          <td><button @click="editUser(item)">Edit</button></td>
+          <td><button @click="editUser(item)">Modifier</button></td>
         </tr>
       </tbody>
     </table>

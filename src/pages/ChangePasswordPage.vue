@@ -1,28 +1,28 @@
 <template>
   <div class="page change-password-page">
     <div class="card">
-      <h1>Change password</h1>
+      <h1>Changer le mot de passe</h1>
       <form @submit.prevent="submitChangePassword">
         <label>
-          Email
+          Adresse e-mail
           <input v-model="formEmail" type="email" readonly />
         </label>
         <label>
-          Old password
+          Ancien mot de passe
           <input v-model="change.oldPassword" type="password" required />
         </label>
         <label>
-          New password
+          Nouveau mot de passe
           <input v-model="change.newPassword" type="password" required />
         </label>
         <label>
-          Confirm new password
+          Confirmer le nouveau mot de passe
           <input v-model="change.confirmPassword" type="password" required />
         </label>
-        <button type="submit">Submit change</button>
+        <button type="submit">Valider</button>
       </form>
       <p v-if="changeMessage" :class="{ error: changeError }">{{ changeMessage }}</p>
-      <button class="back-button" type="button" @click="goBack">Back</button>
+      <button class="back-button" type="button" @click="goBack">Retour</button>
     </div>
   </div>
 </template>
@@ -50,7 +50,7 @@ async function submitChangePassword() {
   changeError.value = false;
 
   if (change.newPassword !== change.confirmPassword) {
-    changeMessage.value = 'New passwords do not match';
+    changeMessage.value = 'Les nouveaux mots de passe ne correspondent pas';
     changeError.value = true;
     return;
   }
@@ -77,13 +77,13 @@ async function submitChangePassword() {
       captchaanswer: ''
     });
 
-    changeMessage.value = 'Password changed successfully';
+    changeMessage.value = 'Mot de passe modifié avec succès';
     changeError.value = false;
     change.oldPassword = '';
     change.newPassword = '';
     change.confirmPassword = '';
   } catch (e: any) {
-    changeMessage.value = e?.message || 'Change password failed';
+    changeMessage.value = e?.message || "Échec du changement de mot de passe";
     changeError.value = true;
   }
 }

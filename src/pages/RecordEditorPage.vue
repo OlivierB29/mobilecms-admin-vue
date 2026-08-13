@@ -1,16 +1,16 @@
 <template>
   <div class="page">
     <header>
-      <h1>{{ id === 'new' ? 'New record' : 'Edit record' }}</h1>
+      <h1>{{ id === 'new' ? 'Nouvel enregistrement' : "Modifier l'enregistrement" }}</h1>
       <div class="actions">
-        <button @click="goBack">Back</button>
-        <button @click="saveRecord">Save</button>
+        <button @click="goBack">Retour</button>
+        <button @click="saveRecord">Enregistrer</button>
         <button
           v-if="id !== 'new'"
           type="button"
           class="delete-button"
           @click="confirmAndDelete"
-          title="Delete record"
+          title="Supprimer l'enregistrement"
         >
           <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="16" height="16" fill="currentColor" aria-hidden="true">
             <path d="M3 6h18v2H3V6zm2 3h14l-1 11a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2l-1-11zM10 4h4l1 2H9l1-2z" />
@@ -18,7 +18,7 @@
         </button>
       </div>
     </header>
-    <div v-if="loading">Loading…</div>
+    <div v-if="loading">Chargement…</div>
     <form v-else @submit.prevent="saveRecord" class="form">
       <div v-for="property in properties" :key="property.name" class="field">
         <label :for="property.name">{{ property.name }}</label>
@@ -46,7 +46,7 @@
           v-model="record[property.name]"
         />
 
-        <ckeditor
+          <ckeditor
           v-else-if="property.editor === 'text'"
           :id="property.name"
           :editor="ClassicEditor"
@@ -63,13 +63,13 @@
             multiple
             @change="onFilesSelected($event, property.name)"
           />
-          <button type="button" @click="uploadFiles(property.name)">Upload files</button>
+          <button type="button" @click="uploadFiles(property.name)">Téléverser des fichiers</button>
           <div class="upload-error" v-if="uploadError">{{ uploadError }}</div>
           <div class="upload-error" v-if="deleteError">{{ deleteError }}</div>
           <div class="uploaded-files" v-if="Array.isArray(record[property.name]) && record[property.name].length">
             <div v-for="file in record[property.name]" :key="file.url" class="uploaded-file">
               <span>{{ file.title || file.url }}</span>
-              <button type="button" class="delete-file-button" @click="deleteFile(property.name, file.url)">Delete</button>
+              <button type="button" class="delete-file-button" @click="deleteFile(property.name, file.url)">Supprimer</button>
             </div>
           </div>
         </div>
@@ -105,7 +105,7 @@ const selectedFiles = ref<File[]>([]);
 const uploadError = ref('');
 const deleteError = ref('');
 const editorConfig = ref({
-  placeholder: 'Enter HTML content here…',
+  placeholder: 'Saisissez du contenu HTML ici…',
   toolbar: ['bold', 'italic', 'link', 'bulletedList', 'numberedList', 'blockQuote', 'heading', '|', 'undo', 'redo']
 });
 
@@ -189,12 +189,12 @@ function onFilesSelected(event: Event, propertyName: string) {
 
 async function uploadFiles(propertyName: string) {
   if (!selectedFiles.value.length) {
-    uploadError.value = 'Select files to upload first.';
+    uploadError.value = 'Sélectionnez d\'abord des fichiers à téléverser.';
     return;
   }
 
   if (id.value === 'new') {
-    uploadError.value = 'Save the record before uploading files.';
+    uploadError.value = "Enregistrez l'enregistrement avant de téléverser des fichiers.";
     return;
   }
 
@@ -212,13 +212,13 @@ async function uploadFiles(propertyName: string) {
     selectedFiles.value = [];
     uploadError.value = '';
   } catch (error) {
-    uploadError.value = error instanceof Error ? error.message : 'Upload failed.';
+    uploadError.value = error instanceof Error ? error.message : 'Échec du téléversement.';
   }
 }
 
 async function deleteFile(propertyName: string, fileUrl: string) {
   if (id.value === 'new') {
-    deleteError.value = 'Save the record before deleting files.';
+    deleteError.value = "Enregistrez l'enregistrement avant de supprimer des fichiers.";
     return;
   }
 
@@ -228,7 +228,7 @@ async function deleteFile(propertyName: string, fileUrl: string) {
     record.value[propertyName] = updatedFiles;
     deleteError.value = '';
   } catch (error) {
-    deleteError.value = error instanceof Error ? error.message : 'Delete failed.';
+    deleteError.value = error instanceof Error ? error.message : "Échec de la suppression.";
   }
 }
 
@@ -244,7 +244,7 @@ async function saveRecord() {
 async function confirmAndDelete() {
   if (id.value === 'new') return;
 
-  const ok = window.confirm('Are you sure you want to delete this record?');
+  const ok = window.confirm("Êtes-vous sûr de vouloir supprimer cet enregistrement ?");
   if (!ok) return;
 
   try {

@@ -1,31 +1,31 @@
 <template>
   <div class="page">
     <header>
-      <h1>{{ id === 'new' ? 'New user' : 'Edit user' }}</h1>
-      <button @click="goBack">Back</button>
+      <h1>{{ id === 'new' ? 'Nouvel utilisateur' : "Modifier l'utilisateur" }}</h1>
+      <button @click="goBack">Retour</button>
     </header>
     <form @submit.prevent="saveUser" class="form">
       <label>
-        Email
+        Adresse e-mail
         <input v-model="user.email" />
       </label>
       <label>
-        Name
+        Nom
         <input v-model="user.name" />
       </label>
       <label>
-        Role
+        Rôle
         <select v-model="user.role">
-          <option value="guest">Guest</option>
-          <option value="editor">Editor</option>
-          <option value="admin">Admin</option>
+          <option value="guest">Invité</option>
+          <option value="editor">Éditeur</option>
+          <option value="admin">Administrateur</option>
         </select>
       </label>
       <label>
-        Password
+        Mot de passe
         <input v-model="user.password" type="password" />
       </label>
-      <button type="submit">Save</button>
+      <button type="submit">Enregistrer</button>
     </form>
   </div>
 </template>
