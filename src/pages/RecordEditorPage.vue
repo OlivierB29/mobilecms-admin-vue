@@ -140,6 +140,44 @@ function formatValue(value: unknown) {
   return value ?? '';
 }
 
+function slugify(value: unknown) {
+  return String(value ?? '')
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .trim()
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '');
+}
+
+function computeGeneratedFields(payload: Record<string, any>) {
+  properties.value.forEach((property: any) => {
+    if (!property || !property.generated || !property.name) {
+      return;
+    }
+
+    const sourceField = String(property.generated).trim();
+    if (!sourceField) {
+      return;
+    }
+
+    const sourceValue = payload[sourceField];
+    if (sourceValue === undefined || sourceValue === null || sourceValue === '') {
+      payload[property.name] = '';
+      return;
+    }
+
+    if (sourceField === 'title') {
+      const base = slugify(sourceValue);
+      const suffix = String(Math.floor(Math.random() * 9000) + 1000);
+      payload[property.name] = base ? `${base}-${suffix}` : `generated-${suffix}`;
+      return;
+    }
+
+    payload[property.name] = sourceValue;
+  });
+}
+
 async function loadMetadata() {
   try {
     const response = await api.get<any[]>(`/cmsapi/metadata/${type.value}`);
@@ -234,7 +272,10 @@ async function deleteFile(propertyName: string, fileUrl: string) {
 
 async function saveRecord() {
   try {
-    await api.post(`/cmsapi/content/${type.value}`, record.value);
+    const payload = { ...record.value };
+    computeGeneratedFields(payload);
+    await api.post(`/cmsapi/content/${type.value}`, payload);
+    record.value = payload;
     router.push(`/recordlist/${type.value}`);
   } catch (e) {
     console.error(e);
