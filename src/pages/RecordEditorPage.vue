@@ -21,10 +21,11 @@
     <div v-if="loading">Chargement…</div>
     <form v-else @submit.prevent="saveRecord" class="form">
       <div v-for="property in properties" :key="property.name" class="field">
-        <label :for="property.name">{{ property.name }}</label>
+        <template v-if="!property.generated">
+          <label :for="property.name">{{ property.name }}</label>
 
-        <input
-          v-if="property.editor === 'line'"
+          <input
+            v-if="property.editor === 'line'"
           :id="property.name"
           v-model="record[property.name]"
         />
@@ -80,9 +81,10 @@
           {{ formatValue(record[property.name]) }}
         </div>
 
-        <div v-else class="value-display">
-          {{ formatValue(record[property.name]) }}
-        </div>
+          <div v-else class="value-display">
+            {{ formatValue(record[property.name]) }}
+          </div>
+        </template>
       </div>
     </form>
   </div>
