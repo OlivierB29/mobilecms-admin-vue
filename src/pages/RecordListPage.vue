@@ -11,11 +11,10 @@
     <div v-if="loading">Chargement…</div>
     <table v-else>
       <thead>
-        <tr><th>ID</th><th>Titre</th><th>État</th><th></th></tr>
+        <tr><th>Titre</th><th>État</th><th></th></tr>
       </thead>
       <tbody>
         <tr v-for="item in items" :key="item.id || item.title">
-          <td>{{ item.id }}</td>
           <td>{{ item.title }}</td>
           <td>{{ item.status }}</td>
           <td><button @click="editRecord(item)">Modifier</button></td>
