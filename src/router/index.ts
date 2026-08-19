@@ -6,6 +6,7 @@ import RecordEditorPage from '../pages/RecordEditorPage.vue';
 import UserListPage from '../pages/UserListPage.vue';
 import UserEditorPage from '../pages/UserEditorPage.vue';
 import MetadataPage from '../pages/MetadataPage.vue';
+import ThemeEditorPage from '../pages/ThemeEditorPage.vue';
 import { useAuthStore } from '../stores/auth';
 
 const routes: RouteRecordRaw[] = [
@@ -15,6 +16,7 @@ const routes: RouteRecordRaw[] = [
   { path: '/changepassword', component: () => import('../pages/ChangePasswordPage.vue'), meta: { requiresAuth: true } },
   { path: '/recordlist/:type', component: RecordListPage, meta: { requiresAuth: true } },
   { path: '/metadata/:type', component: MetadataPage, meta: { requiresAuth: true } },
+  { path: '/theme', component: ThemeEditorPage, meta: { requiresAuth: true } },
   { path: '/record/:type/:id', component: RecordEditorPage, meta: { requiresAuth: true } },
   { path: '/userlist', component: UserListPage, meta: { requiresAuth: true } },
   { path: '/userrecord/:id', component: UserEditorPage, meta: { requiresAuth: true } }
