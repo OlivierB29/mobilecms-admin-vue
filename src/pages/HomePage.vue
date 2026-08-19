@@ -21,6 +21,7 @@
         </router-link>
       </template>
       <router-link v-if="isAdmin" class="card user-card" to="/userlist">Gérer les utilisateurs</router-link>
+      <router-link v-if="isAdmin" class="card" to="/theme">Modifier le thème</router-link>
     </div>
   </div>
 </template>
