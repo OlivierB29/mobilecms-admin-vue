@@ -152,9 +152,13 @@ function slugify(value: unknown) {
     .replace(/^-+|-+$/g, '');
 }
 
-function computeGeneratedFields(payload: Record<string, any>) {
+function computeGeneratedFields(payload: Record<string, any>, preserveExisting: boolean) {
   properties.value.forEach((property: any) => {
     if (!property || !property.generated || !property.name) {
+      return;
+    }
+
+    if (preserveExisting && payload[property.name]) {
       return;
     }
 
@@ -275,7 +279,7 @@ async function deleteFile(propertyName: string, fileUrl: string) {
 async function saveRecord() {
   try {
     const payload = { ...record.value };
-    computeGeneratedFields(payload);
+    computeGeneratedFields(payload, id.value !== 'new');
     await api.post(`/cmsapi/content/${type.value}`, payload);
     record.value = payload;
     router.push(`/recordlist/${type.value}`);
