@@ -20,8 +20,10 @@
           {{ item.label }}
         </router-link>
       </template>
+      <div  v-if="isAdmin">
+        <router-link class="card user-card" to="/theme">Gérer le thème</router-link>
+      </div>
       <router-link v-if="isAdmin" class="card user-card" to="/userlist">Gérer les utilisateurs</router-link>
-      <router-link v-if="isAdmin" class="card" to="/theme">Modifier le thème</router-link>
     </div>
   </div>
 </template>

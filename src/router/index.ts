@@ -16,7 +16,7 @@ const routes: RouteRecordRaw[] = [
   { path: '/changepassword', component: () => import('../pages/ChangePasswordPage.vue'), meta: { requiresAuth: true } },
   { path: '/recordlist/:type', component: RecordListPage, meta: { requiresAuth: true } },
   { path: '/metadata/:type', component: MetadataPage, meta: { requiresAuth: true } },
-  { path: '/theme', component: ThemeEditorPage, meta: { requiresAuth: true } },
+  { path: '/theme', component: ThemeEditorPage, meta: { requiresAuth: true, requiresAdmin: true } },
   { path: '/record/:type/:id', component: RecordEditorPage, meta: { requiresAuth: true } },
   { path: '/userlist', component: UserListPage, meta: { requiresAuth: true } },
   { path: '/userrecord/:id', component: UserEditorPage, meta: { requiresAuth: true } }
@@ -31,6 +31,10 @@ router.beforeEach((to, from, next) => {
   const auth = useAuthStore();
   if (to.meta.requiresAuth && !auth.isAuthenticated) {
     next('/login');
+    return;
+  }
+  if (to.meta.requiresAdmin && !auth.isAdmin) {
+    next('/home');
     return;
   }
   next();
