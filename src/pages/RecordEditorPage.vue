@@ -21,7 +21,7 @@
     <div v-if="loading">Chargement…</div>
     <form v-else @submit.prevent="saveRecord" class="form">
       <div v-for="property in properties" :key="property.name" class="field">
-        <template v-if="!property.generated">
+        <template v-if="property.editor !== 'none' && !property.generated">
           <label :for="property.name">{{ property.name }}</label>
 
           <input
@@ -155,6 +155,11 @@ function slugify(value: unknown) {
 function computeGeneratedFields(payload: Record<string, any>, preserveExisting: boolean) {
   properties.value.forEach((property: any) => {
     if (!property || !property.generated || !property.name) {
+      return;
+    }
+
+    if (String(property.generated).trim() === 'date') {
+      payload[property.name] = new Date().toISOString();
       return;
     }
 
