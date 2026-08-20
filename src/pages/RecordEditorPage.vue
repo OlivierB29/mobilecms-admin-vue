@@ -20,7 +20,11 @@
     </header>
     <div v-if="loading">Chargement…</div>
     <form v-else @submit.prevent="saveRecord" class="form">
-      <div v-for="property in properties" :key="property.name" class="field">
+      <template v-for="property in properties" :key="property.name">
+      <div
+        v-if="isPropertyVisible(property)"
+        class="field"
+      >
         <template v-if="property.editor !== 'none' && !property.generated">
           <label :for="property.name">{{ property.name }}</label>
 
@@ -86,6 +90,7 @@
           </div>
         </template>
       </div>
+      </template>
     </form>
   </div>
 </template>
@@ -125,6 +130,27 @@ function createDefaultRecord() {
   });
 
   return defaults;
+}
+
+function hasValue(value: unknown) {
+  if (Array.isArray(value)) {
+    return value.length > 0;
+  }
+
+  return value !== undefined && value !== null && String(value).trim() !== '';
+}
+
+function isPropertyVisible(property: any) {
+  if (!property.requires) {
+    return true;
+  }
+
+  const requiredFields = String(property.requires)
+    .split(',')
+    .map(field => field.trim())
+    .filter(Boolean);
+
+  return requiredFields.every(field => hasValue(record.value[field]));
 }
 
 function formatValue(value: unknown) {
