@@ -46,7 +46,7 @@ async function loadItems() {
 }
 
 function editRecord(item: any) {
-  router.push(`/record/${type.value}/${item.id || 'new'}`);
+  router.push(`/record/${type.value}/${item.id || ''}`);
 }
 
 function createRecord() {

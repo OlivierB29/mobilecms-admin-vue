@@ -41,7 +41,7 @@ async function loadUsers() {
 }
 
 function editUser(item: any) {
-  router.push(`/userrecord/${encodeURIComponent(item.email || 'new')}`);
+  router.push(`/userrecord/${encodeURIComponent(item.email || '')}`);
 }
 
 function goHome() {

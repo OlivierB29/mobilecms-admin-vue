@@ -1,7 +1,7 @@
 <template>
   <div class="page">
     <header>
-      <h1>{{ id === 'new' ? 'Nouvel utilisateur' : "Modifier l'utilisateur" }}</h1>
+      <h1>{{ id === '' ? 'Nouvel utilisateur' : "Modifier l'utilisateur" }}</h1>
       <button @click="goBack">Retour</button>
     </header>
     <form @submit.prevent="saveUser" class="form">
@@ -37,17 +37,17 @@ import api from '../services/api';
 
 const route = useRoute();
 const router = useRouter();
-const id = ref(String(route.params.id || 'new'));
+const id = ref(String(route.params.id || ''));
 const user = ref<any>({ email: '', name: '', role: 'editor', password: '' });
 
 async function loadUser() {
-  if (id.value === 'new') return;
+  if (id.value === '') return;
   const response = await api.get(`/adminapi/content/users/${decodeURIComponent(id.value)}`);
   user.value = { ...response.data, password: '' };
 }
 
 async function saveUser() {
-  if (id.value === 'new') {
+  if (id.value === '') {
     await api.post('/adminapi/content/users', user.value);
   } else {
     await api.post(`/adminapi/content/users/${encodeURIComponent(user.value.email)}`, user.value);

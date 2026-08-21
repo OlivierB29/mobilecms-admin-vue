@@ -1,12 +1,12 @@
 <template>
   <div class="page">
     <header>
-      <h1>{{ id === 'new' ? 'Nouvel enregistrement' : "Modifier l'enregistrement" }}</h1>
+      <h1>{{ id === '' ? 'Nouvel enregistrement' : "Modifier l'enregistrement" }}</h1>
       <div class="actions">
         <button @click="goBack">Retour</button>
         <button @click="saveRecord">Enregistrer</button>
         <button
-          v-if="id !== 'new'"
+          v-if="id !== ''"
           type="button"
           class="delete-button"
           @click="confirmAndDelete"
@@ -104,7 +104,7 @@ import ClassicEditor from '@ckeditor/ckeditor5-build-classic';
 const route = useRoute();
 const router = useRouter();
 const type = ref(String(route.params.type || 'news'));
-const id = ref(String(route.params.id || 'new'));
+const id = ref(String(route.params.id || ''));
 const loading = ref(true);
 const properties = ref<any[]>([]);
 const record = ref<any>({});
@@ -179,6 +179,7 @@ function slugify(value: unknown) {
 }
 
 function computeGeneratedFields(payload: Record<string, any>, preserveExisting: boolean) {
+  console.log('Computing generated fields for payload:', payload, 'Preserve existing:', preserveExisting)
   properties.value.forEach((property: any) => {
     if (!property || !property.generated || !property.name) {
       return;
@@ -226,7 +227,7 @@ async function loadMetadata() {
 }
 
 async function loadRecord() {
-  if (id.value === 'new') {
+  if (id.value === '') {
     record.value = createDefaultRecord();
     return;
   }
@@ -268,7 +269,7 @@ async function uploadFiles(propertyName: string) {
     return;
   }
 
-  if (id.value === 'new') {
+  if (id.value === '') {
     uploadError.value = "Enregistrez l'enregistrement avant de téléverser des fichiers.";
     return;
   }
@@ -292,7 +293,7 @@ async function uploadFiles(propertyName: string) {
 }
 
 async function deleteFile(propertyName: string, fileUrl: string) {
-  if (id.value === 'new') {
+  if (id.value === '') {
     deleteError.value = "Enregistrez l'enregistrement avant de supprimer des fichiers.";
     return;
   }
@@ -310,7 +311,8 @@ async function deleteFile(propertyName: string, fileUrl: string) {
 async function saveRecord() {
   try {
     const payload = { ...record.value };
-    computeGeneratedFields(payload, id.value !== 'new');
+    console.log(' id.value ', id.value );
+    computeGeneratedFields(payload, id.value !== '');
     await api.post(`/cmsapi/content/${type.value}`, payload);
     record.value = payload;
     router.push(`/recordlist/${type.value}`);
@@ -320,7 +322,7 @@ async function saveRecord() {
 }
 
 async function confirmAndDelete() {
-  if (id.value === 'new') return;
+  if (id.value === '') return;
 
   const ok = window.confirm("Êtes-vous sûr de vouloir supprimer cet enregistrement ?");
   if (!ok) return;
@@ -342,7 +344,7 @@ watch(
   () => route.params.type,
   () => {
     type.value = String(route.params.type || 'news');
-    id.value = String(route.params.id || 'new');
+    id.value = String(route.params.id || '');
     loadPage();
   }
 );
