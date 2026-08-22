@@ -178,43 +178,6 @@ function slugify(value: unknown) {
     .replace(/^-+|-+$/g, '');
 }
 
-function computeGeneratedFields(payload: Record<string, any>, preserveExisting: boolean) {
-  console.log('Computing generated fields for payload:', payload, 'Preserve existing:', preserveExisting)
-  properties.value.forEach((property: any) => {
-    if (!property || !property.generated || !property.name) {
-      return;
-    }
-
-    if (String(property.generated).trim() === 'date') {
-      payload[property.name] = new Date().toISOString();
-      return;
-    }
-
-    if (preserveExisting && payload[property.name]) {
-      return;
-    }
-
-    const sourceField = String(property.generated).trim();
-    if (!sourceField) {
-      return;
-    }
-
-    const sourceValue = payload[sourceField];
-    if (sourceValue === undefined || sourceValue === null || sourceValue === '') {
-      payload[property.name] = '';
-      return;
-    }
-
-    if (sourceField === 'title') {
-      const base = slugify(sourceValue);
-      const suffix = String(Math.floor(Math.random() * 9000) + 1000);
-      payload[property.name] = base ? `${base}-${suffix}` : `generated-${suffix}`;
-      return;
-    }
-
-    payload[property.name] = sourceValue;
-  });
-}
 
 async function loadMetadata() {
   try {
@@ -312,7 +275,7 @@ async function saveRecord() {
   try {
     const payload = { ...record.value };
     console.log(' id.value ', id.value );
-    computeGeneratedFields(payload, id.value !== '');
+
     await api.post(`/cmsapi/content/${type.value}`, payload);
     record.value = payload;
     router.push(`/recordlist/${type.value}`);
