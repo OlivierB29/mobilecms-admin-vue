@@ -22,22 +22,26 @@
     <form v-else @submit.prevent="saveRecord" class="form">
       <template v-for="property in properties" :key="property.name">
       <div
-        v-if="isPropertyVisible(property)"
         class="field"
       >
         <template v-if="property.editor !== 'none' && !property.generated">
           <label :for="property.name">{{ property.name }}</label>
+          <div v-if="!isPropertyEnabled(property)" class="disabled-message">
+            Enregistrez l'article pour activer ce champ à la modification.
+          </div>
 
           <input
             v-if="property.editor === 'line'"
-          :id="property.name"
-          v-model="record[property.name]"
-        />
+            :id="property.name"
+            v-model="record[property.name]"
+            :disabled="!isPropertyEnabled(property)"
+          />
 
         <select
           v-else-if="property.editor === 'choice'"
           :id="property.name"
           v-model="record[property.name]"
+          :disabled="!isPropertyEnabled(property)"
         >
           <option v-for="choice in property.choices || []" :key="choice" :value="choice">
             {{ choice }}
@@ -49,6 +53,7 @@
           :id="property.name"
           type="date"
           v-model="record[property.name]"
+          :disabled="!isPropertyEnabled(property)"
         />
 
           <ckeditor
@@ -57,6 +62,7 @@
           :editor="ClassicEditor"
           v-model="record[property.name]"
           :config="editorConfig"
+          :disabled="!isPropertyEnabled(property)"
         />
 
         <div v-else-if="property.editor === 'medialist'"
@@ -67,14 +73,15 @@
             type="file"
             multiple
             @change="onFilesSelected($event, property.name)"
+            :disabled="!isPropertyEnabled(property)"
           />
-          <button type="button" @click="uploadFiles(property.name)">Téléverser des fichiers</button>
+          <button type="button" @click="uploadFiles(property.name)" :disabled="!isPropertyEnabled(property)">Téléverser des fichiers</button>
           <div class="upload-error" v-if="uploadError">{{ uploadError }}</div>
           <div class="upload-error" v-if="deleteError">{{ deleteError }}</div>
           <div class="uploaded-files" v-if="Array.isArray(record[property.name]) && record[property.name].length">
             <div v-for="file in record[property.name]" :key="file.url" class="uploaded-file">
               <span>{{ file.title || file.url }}</span>
-              <button type="button" class="delete-file-button" @click="deleteFile(property.name, file.url)">Supprimer</button>
+              <button type="button" class="delete-file-button" @click="deleteFile(property.name, file.url)" :disabled="!isPropertyEnabled(property)">Supprimer</button>
             </div>
           </div>
         </div>
@@ -140,7 +147,7 @@ function hasValue(value: unknown) {
   return value !== undefined && value !== null && String(value).trim() !== '';
 }
 
-function isPropertyVisible(property: any) {
+function isPropertyEnabled(property: any) {
   const requirement = property.requiredfields ?? property.requires;
 
   if (!requirement) {
@@ -367,6 +374,7 @@ button { padding: .6rem .9rem; border: 0; border-radius: 8px; cursor: pointer; b
 .field { display: grid; gap: .4rem; }
 label { font-weight: 600; }
 input, select, textarea { padding: .7rem; border: 1px solid #d1d5db; border-radius: 8px; }
+.disabled-message { color: #6b7280; font-size: .9rem; }
 .value-display { padding: .7rem; border: 1px solid #e5e7eb; border-radius: 8px; background: #f9fafb; }
 .media-field { display: grid; gap: .5rem; }
 .uploaded-files { display: grid; gap: .3rem; padding: .6rem; border: 1px solid #d1d5db; border-radius: 8px; background: #f9fafb; }
