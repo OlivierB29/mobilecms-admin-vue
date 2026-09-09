@@ -141,11 +141,15 @@ function hasValue(value: unknown) {
 }
 
 function isPropertyVisible(property: any) {
-  if (!property.requires) {
+  const requirement = property.requiredfields ?? property.requires;
+
+  if (!requirement) {
     return true;
   }
 
-  const requiredFields = String(property.requires)
+  const requiredFields = String(requirement)
+    .replace(/^\s*\[/, '')
+    .replace(/\]\s*$/, '')
     .split(',')
     .map(field => field.trim())
     .filter(Boolean);
