@@ -20,6 +20,7 @@
     </header>
     <div v-if="loading">Chargement…</div>
     <form v-else @submit.prevent="saveRecord" class="form">
+      <div v-if="saveError" class="save-error" role="alert">{{ saveError }}</div>
       <template v-for="property in properties" :key="property.name">
       <div
         class="field"
@@ -35,6 +36,7 @@
             :id="property.name"
             v-model="record[property.name]"
             :disabled="!isPropertyEnabled(property)"
+            :required="isMandatory(property)"
           />
 
         <select
@@ -42,6 +44,7 @@
           :id="property.name"
           v-model="record[property.name]"
           :disabled="!isPropertyEnabled(property)"
+          :required="isMandatory(property)"
         >
           <option v-for="choice in property.choices || []" :key="choice" :value="choice">
             {{ choice }}
@@ -54,6 +57,7 @@
           type="date"
           v-model="record[property.name]"
           :disabled="!isPropertyEnabled(property)"
+          :required="isMandatory(property)"
         />
 
           <ckeditor
@@ -118,6 +122,7 @@ const record = ref<any>({});
 const selectedFiles = ref<File[]>([]);
 const uploadError = ref('');
 const deleteError = ref('');
+const saveError = ref('');
 const editorConfig = ref({
   placeholder: 'Saisissez du contenu HTML ici…',
   toolbar: ['bold', 'italic', 'link', 'bulletedList', 'numberedList', 'blockQuote', 'heading', '|', 'undo', 'redo']
@@ -145,6 +150,23 @@ function hasValue(value: unknown) {
   }
 
   return value !== undefined && value !== null && String(value).trim() !== '';
+}
+
+function isMandatory(property: any) {
+  return property.mandatory === true || String(property.mandatory).toLowerCase() === 'true';
+}
+
+function validateMandatoryFields(payload: Record<string, unknown>) {
+  const missingFields = properties.value
+    .filter(property => isMandatory(property) && !hasValue(payload[property.name]))
+    .map(property => property.name);
+
+  if (missingFields.length === 0) {
+    return true;
+  }
+
+  saveError.value = `Les champs obligatoires doivent être renseignés : ${missingFields.join(', ')}.`;
+  return false;
 }
 
 function isPropertyEnabled(property: any) {
@@ -324,6 +346,10 @@ async function saveRecord() {
     const payload = { ...record.value };
     console.log(' id.value ', id.value );
     computeGeneratedFields(payload, id.value !== '');
+    saveError.value = '';
+    if (!validateMandatoryFields(payload)) {
+      return;
+    }
     await api.post(`/cmsapi/content/${type.value}`, payload);
     record.value = payload;
     router.push(`/recordlist/${type.value}`);
@@ -371,6 +397,7 @@ header { display: flex; justify-content: space-between; align-items: center; mar
 .actions { display: flex; gap: .75rem; }
 button { padding: .6rem .9rem; border: 0; border-radius: 8px; cursor: pointer; background: #111827; color: white; }
 .form { display: grid; gap: 1rem; max-width: 640px; background: white; padding: 1.5rem; border-radius: 12px; }
+.save-error { color: #b91c1c; font-size: .95rem; }
 .field { display: grid; gap: .4rem; }
 label { font-weight: 600; }
 input, select, textarea { padding: .7rem; border: 1px solid #d1d5db; border-radius: 8px; }
