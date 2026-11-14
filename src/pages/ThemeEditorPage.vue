@@ -41,7 +41,13 @@
           <button type="button" @click="uploadBanner">Téléverser l’image</button>
         </div>
         <div v-if="theme.banner.imageurl" class="uploaded-banner">
-          Image actuelle : {{ theme.banner.imageurl }}
+          <img
+            :src="bannerImageUrl"
+            :srcset="bannerSrcset || undefined"
+            sizes="100vw"
+            :alt="theme.banner.imagealt"
+          />
+          <span>Image actuelle : {{ theme.banner.imageurl }}</span>
         </div>
         <p v-if="uploadError" class="error">{{ uploadError }}</p>
         <label>Texte alternatif<input v-model="theme.banner.imagealt" /></label>
@@ -51,12 +57,13 @@
 </template>
 
 <script setup lang="ts">
-import { onMounted, reactive, ref } from 'vue';
+import { computed, onMounted, reactive, ref } from 'vue';
 import { useRouter } from 'vue-router';
 import api from '../services/api';
 
 interface SocialNetwork { title: string; url: string; icon: string }
-interface Theme { defaultlocale: string; title: string; fulltitle: string; keywords: string; socialnetworks: SocialNetwork[]; googlecalendar: { embedurl: string }; banner: { imageurl: string; imagealt: string } }
+interface ThemeThumbnail { url: string; width: string | number; height?: string | number }
+interface Theme { defaultlocale: string; title: string; fulltitle: string; keywords: string; socialnetworks: SocialNetwork[]; googlecalendar: { embedurl: string }; banner: { imageurl: string; imagealt: string; thumbnails: ThemeThumbnail[] } }
 
 const router = useRouter();
 const loading = ref(true);
@@ -65,7 +72,26 @@ const uploadError = ref('');
 const bannerFile = ref<File | null>(null);
 const theme = reactive<Theme>({
   defaultlocale: '', title: '', fulltitle: '', keywords: '', socialnetworks: [],
-  googlecalendar: { embedurl: '' }, banner: { imageurl: '', imagealt: '' }
+  googlecalendar: { embedurl: '' }, banner: { imageurl: '', imagealt: '', thumbnails: [] }
+});
+
+function getPublicUrl(url: string) {
+  if (url.startsWith('http') || url.startsWith('//') || url.startsWith('/')) {
+    return url;
+  }
+
+  return `/${url}`;
+}
+
+const bannerImageUrl = computed(() => getPublicUrl(theme.banner.imageurl));
+const bannerSrcset = computed(() => {
+  const imageUrl = theme.banner.imageurl;
+  const directory = imageUrl.slice(0, imageUrl.lastIndexOf('/') + 1);
+
+  return theme.banner.thumbnails
+    .filter(thumbnail => thumbnail.url && Number(thumbnail.width) > 0)
+    .map(thumbnail => `${getPublicUrl(`${directory}thumbnails/${thumbnail.url}`)} ${thumbnail.width}w`)
+    .join(', ');
 });
 
 function applyTheme(data: Partial<Theme>) {
@@ -78,7 +104,11 @@ function applyTheme(data: Partial<Theme>) {
       }))
       : [],
     googlecalendar: { embedurl: data.googlecalendar?.embedurl || '' },
-    banner: { imageurl: data.banner?.imageurl || '', imagealt: data.banner?.imagealt || '' }
+    banner: {
+      imageurl: data.banner?.imageurl || '',
+      imagealt: data.banner?.imagealt || '',
+      thumbnails: Array.isArray(data.banner?.thumbnails) ? data.banner.thumbnails : []
+    }
   });
 }
 
@@ -115,8 +145,9 @@ async function uploadBanner() {
   formData.append('banner', bannerFile.value);
 
   try {
-    const response = await api.upload<{ url: string }>('/adminapi/theme/banner', formData);
+    const response = await api.upload<{ url: string; thumbnails?: ThemeThumbnail[] }>('/adminapi/theme/banner', formData);
     theme.banner.imageurl = response.data.url;
+    theme.banner.thumbnails = response.data.thumbnails || [];
     bannerFile.value = null;
     uploadError.value = '';
   } catch (err) {
@@ -140,6 +171,8 @@ h2 { margin: 0; font-size: 1.1rem; }
 label { display: grid; gap: .4rem; font-weight: 600; }
 input { width: 100%; padding: .7rem; border: 1px solid #d1d5db; border-radius: 8px; }
 .upload-field { display: flex; align-items: center; gap: .75rem; flex-wrap: wrap; }
+.uploaded-banner { display: grid; gap: .75rem; padding: .75rem; border: 1px solid #d1d5db; border-radius: 8px; background: #f9fafb; }
+.uploaded-banner img { display: block; width: 100%; max-height: 18rem; object-fit: contain; }
 button { padding: .6rem .9rem; border: 0; border-radius: 8px; cursor: pointer; background: #111827; color: white; }
 .primary { background: #2563eb; }
 .network { display: grid; grid-template-columns: repeat(2, 1fr); gap: 1rem; padding: 1rem; border: 1px solid #e5e7eb; border-radius: 8px; }
