@@ -37,7 +37,7 @@
       <section>
         <h2>Bannière</h2>
         <div class="upload-field">
-          <input type="file" accept="image/jpeg,image/png,image/gif" @change="onBannerSelected" />
+          <input type="file" accept="image/jpeg,image/png,image/gif,image/webp" @change="onBannerSelected" />
           <button type="button" @click="uploadBanner">Téléverser l’image</button>
         </div>
         <div v-if="theme.banner.imageurl" class="uploaded-banner">
