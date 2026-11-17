@@ -1,6 +1,7 @@
 import { createRouter, createWebHistory, type RouteRecordRaw } from 'vue-router';
 import HomePage from '../pages/HomePage.vue';
 import LoginPage from '../pages/LoginPage.vue';
+import TemporaryLoginPage from '../pages/TemporaryLoginPage.vue';
 import RecordListPage from '../pages/RecordListPage.vue';
 import RecordEditorPage from '../pages/RecordEditorPage.vue';
 import UserListPage from '../pages/UserListPage.vue';
@@ -12,8 +13,9 @@ import { useAuthStore } from '../stores/auth';
 const routes: RouteRecordRaw[] = [
   { path: '/', redirect: '/home' },
   { path: '/login', component: LoginPage },
+  { path: '/temporary-login', component: TemporaryLoginPage },
   { path: '/home', component: HomePage, meta: { requiresAuth: true } },
-  { path: '/changepassword', component: () => import('../pages/ChangePasswordPage.vue'), meta: { requiresAuth: true } },
+  { path: '/changepassword', component: () => import('../pages/ChangePasswordPage.vue'), meta: { requiresAuth: true, allowsTemporaryReset: true } },
   { path: '/recordlist/:type', component: RecordListPage, meta: { requiresAuth: true } },
   { path: '/metadata/:type', component: MetadataPage, meta: { requiresAuth: true } },
   { path: '/theme', component: ThemeEditorPage, meta: { requiresAuth: true, requiresAdmin: true } },
@@ -29,7 +31,8 @@ const router = createRouter({
 
 router.beforeEach((to, from, next) => {
   const auth = useAuthStore();
-  if (to.meta.requiresAuth && !auth.isAuthenticated) {
+  const temporaryPasswordReset = to.meta.allowsTemporaryReset && to.query.reset === '1';
+  if (to.meta.requiresAuth && !temporaryPasswordReset && !auth.isAuthenticated) {
     next('/login');
     return;
   }

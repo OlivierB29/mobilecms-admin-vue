@@ -88,9 +88,8 @@ async function submitResetPassword() {
       user: form.email
     });
 
-    resetMessage.value = "E-mail de réinitialisation envoyé ou réinitialisation initiée";
+    resetMessage.value = "Si cette adresse correspond à un compte, un lien de réinitialisation a été envoyé par e-mail.";
     resetError.value = false;
-    showReset.value = false;
   } catch (e: any) {
     resetMessage.value = e?.message || 'Échec de la réinitialisation du mot de passe';
     resetError.value = true;
